@@ -1,0 +1,51 @@
+cell:
+  name: DIFF_PAIR
+  ports: [INP, INN, TAIL, VDD, OUT_P, OUT_N]
+  parameters:
+    IBIAS: 10e-6
+  components:
+    - id: M1
+      type: primitive
+      model: nmos
+      connections: {D: OUT_N, G: INP, S: TAIL, B: VSS}
+      parameters: {W: 10e-6, L: 500e-9, model_name: nch_hv}
+
+    - id: M2
+      type: primitive
+      model: nmos
+      connections: {D: OUT_P, G: INN, S: TAIL, B: VSS}
+      parameters: {W: 10e-6, L: 500e-9, model_name: nch_hv}
+
+    - id: ITAIL
+      type: primitive
+      model: isrc
+      connections: {P: TAIL, N: VSS}
+      parameters: {value: "{IBIAS}"}
+
+    - id: R_LOAD1
+      type: primitive
+      model: r
+      connections: {P: VDD, N: OUT_N}
+      parameters: {value: 10000}
+
+    - id: R_LOAD2
+      type: primitive
+      model: r
+      connections: {P: VDD, N: OUT_P}
+      parameters: {value: 10000}
+
+    - id: C_COMP
+      type: primitive
+      model: c
+      connections: {P: OUT_P, N: OUT_N}
+      parameters: {value: 1e-12}
+
+    - id: XBIAS
+      type: subckt
+      model: BIAS_GEN
+      connections:
+        VREF: vref_node
+        VDD: VDD
+        VSS: VSS
+        IOUT: TAIL
+      parameters: {}

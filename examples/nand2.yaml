@@ -1,0 +1,27 @@
+cell:
+  name: NAND2
+  ports: [A, B, Z, VDD, VSS]
+  components:
+    - id: MP1
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: A, S: VDD, B: VDD}
+      parameters: {W: 2e-6, L: 180e-9, model_name: pch}
+
+    - id: MP2
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: B, S: VDD, B: VDD}
+      parameters: {W: 2e-6, L: 180e-9, model_name: pch}
+
+    - id: MN1
+      type: primitive
+      model: nmos
+      connections: {D: Z, G: A, S: mid, B: VSS}
+      parameters: {W: 2e-6, L: 180e-9, model_name: nch}
+
+    - id: MN2
+      type: primitive
+      model: nmos
+      connections: {D: mid, G: B, S: VSS, B: VSS}
+      parameters: {W: 2e-6, L: 180e-9, model_name: nch}
