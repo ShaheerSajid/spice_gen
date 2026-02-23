@@ -1,4 +1,5 @@
 from .base import SpiceGenerator
+from ..model.netlist import PdkInclude
 
 
 class Spice3Generator(SpiceGenerator):
@@ -17,3 +18,7 @@ class Spice3Generator(SpiceGenerator):
 
     def _format_instance_params(self, params: dict[str, str]) -> str:
         return " ".join(f"{k}={v}" for k, v in params.items())
+
+    def _format_pdk_include(self, pdk_inc: PdkInclude) -> str:
+        # SPICE3 has no .lib section concept; fall back to .include
+        return f'.include "{pdk_inc.lib_file}"'

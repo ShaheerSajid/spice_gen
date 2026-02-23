@@ -23,6 +23,10 @@ def _build_arg_parser() -> argparse.ArgumentParser:
               spice_gen nand2.yaml --dialect hspice --output nand2.sp
               spice_gen opamp.yaml --dialect ngspice --stdout
               spice_gen cell.json  --dialect spice3  -v
+
+              # PDK-aware generation
+              spice_gen sky130_inverter.yaml --pdk pdks/sky130A.yaml --dialect ngspice --stdout
+              spice_gen sky130_inverter.yaml --pdk pdks/sky130A.yaml --corner ff --dialect ngspice
         """),
     )
     p.add_argument(
@@ -48,6 +52,18 @@ def _build_arg_parser() -> argparse.ArgumentParser:
         help="Write output to stdout instead of a file (ignores --output)",
     )
     p.add_argument(
+        "--pdk",
+        default=None,
+        metavar="PDK_YAML",
+        help="Path to PDK config YAML file for technology-aware generation",
+    )
+    p.add_argument(
+        "--corner",
+        default=None,
+        metavar="CORNER",
+        help="Process corner (e.g. tt, ff, ss). Defaults to PDK's default_corner.",
+    )
+    p.add_argument(
         "-v", "--verbose",
         action="store_true",
         help="Print diagnostic information to stderr",
@@ -64,7 +80,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"error: input file not found: {input_path}", file=sys.stderr)
         return 1
 
-    # Parse
+    # Parse topology
     if args.verbose:
         print(f"[spice_gen] loading: {input_path}", file=sys.stderr)
     try:
@@ -72,6 +88,22 @@ def main(argv: list[str] | None = None) -> int:
     except Exception as exc:
         print(f"error: failed to parse input: {exc}", file=sys.stderr)
         return 2
+
+    # PDK resolution (optional)
+    if args.pdk:
+        pdk_path = pathlib.Path(args.pdk)
+        if not pdk_path.exists():
+            print(f"error: PDK config file not found: {pdk_path}", file=sys.stderr)
+            return 1
+        if args.verbose:
+            print(f"[spice_gen] applying PDK: {pdk_path}  corner: {args.corner or 'default'}", file=sys.stderr)
+        try:
+            from .pdk import load_pdk, resolve
+            pdk = load_pdk(pdk_path)
+            netlist = resolve(netlist, pdk, args.corner or None)
+        except Exception as exc:
+            print(f"error: PDK resolution failed: {exc}", file=sys.stderr)
+            return 2
 
     # Generate
     if args.verbose:

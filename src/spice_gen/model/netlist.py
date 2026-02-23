@@ -6,6 +6,14 @@ from .component import AnyComponent
 
 
 @dataclass
+class PdkInclude:
+    """Represents a PDK .lib file + corner to be emitted before the subckt block."""
+
+    lib_file: str   # Absolute path to the PDK .lib file
+    corner:   str   # Corner section name (e.g. "tt", "ff", "ss")
+
+
+@dataclass
 class SubcktDef:
     """
     Represents a single .subckt block: its interface (ports) and contents (components).
@@ -26,8 +34,9 @@ class Netlist:
     (dependencies before dependents).
     """
 
-    subckt_defs: list[SubcktDef] = field(default_factory=list)
-    top_cell:    str | None      = None
+    subckt_defs:  list[SubcktDef]  = field(default_factory=list)
+    top_cell:     str | None       = None
+    pdk_includes: list[PdkInclude] = field(default_factory=list)
 
     def get_subckt(self, name: str) -> SubcktDef | None:
         """Look up a SubcktDef by name (used for port-order resolution)."""

@@ -3,7 +3,7 @@ from __future__ import annotations
 import abc
 
 from ..model.component import AnyComponent, PrimitiveComponent, SubcktInstance
-from ..model.netlist import Netlist, SubcktDef
+from ..model.netlist import Netlist, PdkInclude, SubcktDef
 
 
 class SpiceGenerator(abc.ABC):
@@ -26,7 +26,11 @@ class SpiceGenerator(abc.ABC):
 
         sections.append(self._format_header(netlist))
 
-        # Emit .include directives from the top cell
+        # Emit PDK .lib / .include directives first
+        for pdk_inc in netlist.pdk_includes:
+            sections.append(self._format_pdk_include(pdk_inc))
+
+        # Emit cell-level .include directives
         if netlist.subckt_defs:
             for inc in netlist.subckt_defs[0].includes:
                 sections.append(self._format_include(inc))
@@ -47,6 +51,10 @@ class SpiceGenerator(abc.ABC):
 
     def _format_include(self, path: str) -> str:
         return f'.include "{path}"'
+
+    def _format_pdk_include(self, pdk_inc: PdkInclude) -> str:
+        """Emit the PDK model library. Default: .lib syntax (ngspice/hspice)."""
+        return f'.lib "{pdk_inc.lib_file}" {pdk_inc.corner}'
 
     # ------------------------------------------------------------------ #
     # Subcircuit block

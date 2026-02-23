@@ -1,0 +1,108 @@
+name: sky130A
+description: SkyWater 130nm open-source PDK
+path: /usr/local/share/pdk/sky130A
+lib_file: libs.tech/ngspice/sky130.lib.spice
+corners:
+  - tt
+  - ff
+  - ss
+  - sf
+  - fs
+default_corner: tt
+
+# Maps logical device names (used in topology YAMLs) to sky130 PDK model names.
+# All sky130 transistors are subcircuit-wrapped, so is_subckt: true produces
+# X elements instead of M elements.
+#
+# Topology YAMLs should use these logical names in parameters.model_name.
+# W and L values should be in microns (sky130 convention).
+models:
+  # 1.8V standard NFET (most common)
+  nmos_1v8:
+    pdk_name: sky130_fd_pr__nfet_01v8
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 1.8V Low-VT NFET (faster, higher leakage)
+  nmos_1v8_lvt:
+    pdk_name: sky130_fd_pr__nfet_01v8_lvt
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 3.3V native-VT NFET
+  nmos_3v3:
+    pdk_name: sky130_fd_pr__nfet_03v3_nvt
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 5V high-voltage NFET (gate 5V, drain up to 10.5V)
+  nmos_5v0:
+    pdk_name: sky130_fd_pr__nfet_g5v0d10v5
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 1.8V standard PFET (most common)
+  pmos_1v8:
+    pdk_name: sky130_fd_pr__pfet_01v8
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 1.8V Low-VT PFET
+  pmos_1v8_lvt:
+    pdk_name: sky130_fd_pr__pfet_01v8_lvt
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 1.8V High-VT PFET (lower leakage)
+  pmos_1v8_hvt:
+    pdk_name: sky130_fd_pr__pfet_01v8_hvt
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # 5V high-voltage PFET
+  pmos_5v0:
+    pdk_name: sky130_fd_pr__pfet_g5v0d10v5
+    is_subckt: true
+    ports: [d, g, s, b]
+
+  # NPN bipolar (5.5V, 1x1 unit)
+  npn:
+    pdk_name: sky130_fd_pr__npn_05v5_1x1
+    is_subckt: true
+    ports: [c, b, e, s]
+
+  # PNP bipolar (5.5V, 1x1 unit)
+  pnp:
+    pdk_name: sky130_fd_pr__pnp_05v5_1x1
+    is_subckt: true
+    ports: [c, b, e]
+
+  # P-diffusion to N-well diode
+  diode_pn:
+    pdk_name: sky130_fd_pr__diode_pd2nw_05v5
+    is_subckt: true
+    ports: [a, k]
+
+  # High-sheet poly resistor (0.35 µm width)
+  res_poly:
+    pdk_name: sky130_fd_pr__res_high_po_0p35
+    is_subckt: true
+    ports: [p, n]
+
+  # Extra-high-sheet poly resistor (0.35 µm width)
+  res_xpoly:
+    pdk_name: sky130_fd_pr__res_xhigh_po_0p35
+    is_subckt: true
+    ports: [p, n]
+
+  # MIM capacitor on metal 3
+  cap_mim:
+    pdk_name: sky130_fd_pr__cap_mim_m3_1
+    is_subckt: true
+    ports: [c0, c1]
+
+  # Varactor (LVT variant)
+  cap_var:
+    pdk_name: sky130_fd_pr__cap_var_lvt
+    is_subckt: true
+    ports: [b, g]

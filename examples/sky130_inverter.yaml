@@ -1,0 +1,30 @@
+# sky130A inverter using logical device names.
+# Run with:
+#   spice_gen examples/sky130_inverter.yaml --pdk pdks/sky130A.yaml --dialect ngspice --stdout
+#
+# W and L values are in microns (sky130 convention).
+# model_name values are resolved against pdks/sky130A.yaml.
+
+cell:
+  name: INV_SKY130
+  ports: [A, Z, VDD, VSS]
+  components:
+    - id: MP1
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: A, S: VDD, B: VDD}
+      parameters:
+        W: 1.0
+        L: 0.15
+        nf: 1
+        model_name: pmos_1v8       # → sky130_fd_pr__pfet_01v8
+
+    - id: MN1
+      type: primitive
+      model: nmos
+      connections: {D: Z, G: A, S: VSS, B: VSS}
+      parameters:
+        W: 0.5
+        L: 0.15
+        nf: 1
+        model_name: nmos_1v8       # → sky130_fd_pr__nfet_01v8
