@@ -1,0 +1,58 @@
+# sky130A AOI21 (AND-OR-INVERT: Z = !((A & B) | C))
+# Demonstrates hierarchical composition using deps.
+#
+# This cell instantiates NAND2_SKY130 and INV_SKY130 as subcircuits.
+# Port ordering is resolved automatically from their definitions.
+#
+# Run with:
+#   spice_gen examples/sky130_aoi21.yaml --pdk pdks/sky130A.yaml --dialect ngspice --stdout
+
+cell:
+  name: AOI21_SKY130
+  ports: [A, B, C, Z, VDD, VSS]
+  deps:
+    - sky130_nand2.yaml      # defines NAND2_SKY130
+    - sky130_inverter.yaml   # defines INV_SKY130
+  components:
+    - id: XNAND
+      type: subckt
+      model: NAND2_SKY130
+      connections:
+        A: A
+        B: B
+        Z: nand_out
+        VDD: VDD
+        VSS: VSS
+
+    - id: XNOR
+      type: subckt
+      model: INV_SKY130
+      connections:
+        A: C
+        Z: inv_out
+        VDD: VDD
+        VSS: VSS
+
+    - id: MN_AND
+      type: primitive
+      model: nmos
+      connections: {D: Z, G: nand_out, S: mid, B: VSS}
+      parameters: {W: 0.65, L: 0.15, nf: 1, model_name: nmos_1v8}
+
+    - id: MN_OR
+      type: primitive
+      model: nmos
+      connections: {D: mid, G: inv_out, S: VSS, B: VSS}
+      parameters: {W: 0.65, L: 0.15, nf: 1, model_name: nmos_1v8}
+
+    - id: MP_AND
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: nand_out, S: VDD, B: VDD}
+      parameters: {W: 1.0, L: 0.15, nf: 1, model_name: pmos_1v8}
+
+    - id: MP_OR
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: inv_out, S: VDD, B: VDD}
+      parameters: {W: 1.0, L: 0.15, nf: 1, model_name: pmos_1v8}

@@ -1,0 +1,30 @@
+# sky130A NAND2 using logical device names.
+# W and L values are in microns (sky130 convention).
+
+cell:
+  name: NAND2_SKY130
+  ports: [A, B, Z, VDD, VSS]
+  components:
+    - id: MP1
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: A, S: VDD, B: VDD}
+      parameters: {W: 1.0, L: 0.15, nf: 1, model_name: pmos_1v8}
+
+    - id: MP2
+      type: primitive
+      model: pmos
+      connections: {D: Z, G: B, S: VDD, B: VDD}
+      parameters: {W: 1.0, L: 0.15, nf: 1, model_name: pmos_1v8}
+
+    - id: MN1
+      type: primitive
+      model: nmos
+      connections: {D: Z, G: A, S: mid, B: VSS}
+      parameters: {W: 0.65, L: 0.15, nf: 1, model_name: nmos_1v8}
+
+    - id: MN2
+      type: primitive
+      model: nmos
+      connections: {D: mid, G: B, S: VSS, B: VSS}
+      parameters: {W: 0.65, L: 0.15, nf: 1, model_name: nmos_1v8}

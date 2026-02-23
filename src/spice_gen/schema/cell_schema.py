@@ -43,6 +43,7 @@ class CellSchema(BaseModel):
     ports:      list[str] = Field(min_length=1)
     parameters: dict[str, Any] = Field(default_factory=dict)
     includes:   list[str]      = Field(default_factory=list)
+    deps:       list[str]      = Field(default_factory=list)
     components: list[ComponentSchema]
 
     @model_validator(mode="after")

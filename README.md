@@ -11,6 +11,7 @@ Define your circuit once in a readable YAML file — `spice_gen` handles port or
 - **Primitive devices** — NMOS, PMOS, NPN, PNP, R, C, L, voltage/current sources, diode
 - **Hierarchical subcircuits** — instantiate `.subckt` blocks; port order resolved from definition
 - **Multiple output dialects** — `spice3`, `hspice`, `ngspice`
+- **Hierarchical cell composition** — reference other cell YAMLs via `deps:`; port order, deduplication, and dependency ordering are resolved automatically
 - **PDK-aware generation** — map logical device names to technology-specific model names via a PDK config YAML; includes `.lib` injection and automatic M→X element conversion for subcircuit-wrapped PDKs (e.g. sky130A)
 - **Portable topologies** — the same cell YAML runs against any PDK by swapping the `--pdk` argument
 - **CLI tool** — single command, stdout or file output
@@ -86,6 +87,34 @@ Subcircuit instantiation:
         VSS: VSS
         IOUT: tail_net
 ```
+
+### Hierarchical cell composition
+
+Use `deps:` to declare that a cell's YAML depends on other cell YAMLs.  The
+loader resolves them recursively, handles diamond dependencies (shared cell
+emitted once), and detects cycles:
+
+```yaml
+cell:
+  name: BUF
+  ports: [A, Z, VDD, VSS]
+  deps:
+    - inv.yaml          # path relative to this file
+  components:
+    - id: XINV1
+      type: subckt
+      model: INV
+      connections: {A: A, Z: mid, VDD: VDD, VSS: VSS}
+    - id: XINV2
+      type: subckt
+      model: INV
+      connections: {A: mid, Z: Z, VDD: VDD, VSS: VSS}
+```
+
+The generated netlist contains `.subckt INV` before `.subckt BUF`, and port
+order for `XINV1`/`XINV2` is resolved automatically from `INV`'s definition.
+See `examples/sky130_aoi21.yaml` for a three-level hierarchy example (AOI21
+composed from NAND2 and INV).
 
 ### Supported primitive models
 
@@ -240,27 +269,29 @@ options:
 ```
 spice_gen/
 ├── pdks/
-│   └── sky130A.yaml         # sky130A PDK config (16 device types)
+│   └── sky130A.yaml            # sky130A PDK config (16 device types)
 ├── examples/
-│   ├── inverter.yaml        # generic inverter
-│   ├── nand2.yaml           # generic NAND2
-│   ├── opamp_snippet.yaml   # diff pair + passives
-│   └── sky130_inverter.yaml # sky130A inverter (logical model names)
+│   ├── inverter.yaml           # generic inverter
+│   ├── nand2.yaml              # generic NAND2
+│   ├── opamp_snippet.yaml      # diff pair + passives
+│   ├── sky130_inverter.yaml    # sky130A inverter (logical model names)
+│   ├── sky130_nand2.yaml       # sky130A NAND2
+│   └── sky130_aoi21.yaml       # sky130A AOI21 (deps: nand2 + inverter)
 └── src/spice_gen/
     ├── model/
-    │   ├── primitives.py    # port-order registry — single source of truth
-    │   ├── component.py     # PrimitiveComponent, SubcktInstance
-    │   └── netlist.py       # SubcktDef, Netlist, PdkInclude
+    │   ├── primitives.py       # port-order registry — single source of truth
+    │   ├── component.py        # PrimitiveComponent, SubcktInstance
+    │   └── netlist.py          # SubcktDef, Netlist, PdkInclude
     ├── schema/
-    │   └── cell_schema.py   # Pydantic v2 input validation
+    │   └── cell_schema.py      # Pydantic v2 input validation
     ├── parser/
-    │   ├── loader.py        # YAML/JSON → Netlist
-    │   └── builder.py       # validated schema → internal model
+    │   ├── loader.py           # YAML/JSON → Netlist (recursive dep loading)
+    │   └── builder.py          # validated schema → internal model
     ├── pdk/
-    │   ├── pdk_config.py    # Pydantic schema for PDK YAML
-    │   └── resolver.py      # logical name resolution + .lib injection
+    │   ├── pdk_config.py       # Pydantic schema for PDK YAML
+    │   └── resolver.py         # logical name resolution + .lib injection
     ├── generator/
-    │   ├── base.py          # abstract SpiceGenerator
+    │   ├── base.py             # abstract SpiceGenerator
     │   ├── spice3.py
     │   ├── hspice.py
     │   └── ngspice.py
@@ -273,7 +304,7 @@ spice_gen/
 pytest tests/ -v
 ```
 
-65 tests covering unit (primitives, builder, generators, PDK config, resolver) and integration (full YAML-to-SPICE round-trips for all three dialects, with and without PDK).
+74 tests covering unit (primitives, builder, generators, PDK config, resolver, hierarchical deps) and integration (full YAML-to-SPICE round-trips for all three dialects, with and without PDK, including multi-level hierarchy).
 
 ## Extending with a New PDK
 
