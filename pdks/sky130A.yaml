@@ -2,6 +2,20 @@ name: sky130A
 description: SkyWater 130nm open-source PDK
 path: /usr/local/share/pdk/sky130A
 lib_file: libs.tech/ngspice/sky130.lib.spice
+
+# Empirical transistor parameters used for analytical load/driver estimates
+# in the cell optimizer.  Values are calibrated at W=1 µm, L=150 nm, TT/27 °C.
+#   cox_ff_um2  — gate oxide capacitance (fF/µm²)
+#   c_ov_ff_um  — overlap capacitance (fF/µm, per source/drain edge)
+#   r_nmos_ohm  — NMOS effective on-resistance × width (Ω·µm)
+#   r_pmos_ohm  — PMOS effective on-resistance × width (Ω·µm)
+transistor_params:
+  l_min_um: 0.15
+  cox_ff_um2: 12.0
+  c_ov_ff_um: 0.5
+  r_nmos_ohm: 5600
+  r_pmos_ohm: 9000
+
 corners:
   - tt
   - ff
